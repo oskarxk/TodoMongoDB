@@ -3,7 +3,7 @@ import { AuthForm } from './AuthForm';
 import { useFormik } from 'formik';
 
 import { Input } from './Input';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { initialValues, registerSchema } from './registerData';
 import axios from 'axios';
 
@@ -26,7 +26,7 @@ export const RegistrationForm = (props: Props) => {
 				password: register.password,
 			});
 			console.log(response);
-			navigate('/login');
+			navigate('/');
 		} catch (error) {
 			console.error('Error sending order:', error);
 		}

@@ -6,22 +6,21 @@
 
 // E - Express
 
-const connectDB = require('./config/db');
 const express = require('express');
-const app = express();
-const cors = require('cors');
-const dotEnv = require('dotenv').config();
+const dotenv = require('dotenv').config();
 const mongoose = require('mongoose');
 const User = require('./models/userModel');
 const Todo = require('./models/todosModel');
 const jwt = require('jsonwebtoken');
+const connectDB = require('./config/db');
 const port = process.env.PORT || 5000;
 
 connectDB();
+const app = express();
+const cors = require('cors');
 
 app.use(cors());
 app.use(express.json());
-
 
 app.post('/api/register', async (req, res) => {
 	try {
@@ -61,22 +60,32 @@ app.post('/api/login', async (req, res) => {
 
 app.get('/api/getTodos', async (req, res) => {
 	const token = req.headers['x-access-token'];
-  
+	console.log('mój token', token);
+
 	try {
-	  const decoded = jwt.verify(token, 'privateKey123');
-	  const email = decoded.email;
-	  const user = await User.findOne({ email: email }).populate('todos');
-  
-	  if (user) {
-		return res.json({ status: 'ok', todos: user.todos });
-	  } else {
-		return res.json({ status: 'error', error: 'User not found' });
-	  }
+		const decoded = jwt.verify(token, 'privateKey123');
+		const email = decoded.email;
+		// const user = await User.findOne({ email: email }).populate('todos');
+
+		const user = await User.findOne({ email: email });
+		const todos = await Todo.find({ user: user._id });
+
+		
+
+		console.log('Dane użytkownika:', user);
+		console.log('Todosy użytkownika:', todos);
+		console.log(user);
+
+		if (user) {
+			return res.json({ status: 'ok', todos: todos });
+		} else {
+			return res.json({ status: 'error', error: 'User not found' });
+		}
 	} catch (error) {
-	  console.log(error);
-	  res.json({ status: 'error', error: 'Invalid token' });
+		console.log(error);
+		res.json({ status: 'error', error: 'Invalid token' });
 	}
-  });
+});
 
 app.post('/api/addTodos', async (req, res) => {
 	const token = req.headers['x-access-token'];

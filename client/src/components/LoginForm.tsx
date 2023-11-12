@@ -28,7 +28,6 @@ export const LoginForm = (props: Props) => {
 			} else {
 				alert('Please check your username and password');
 			}
-			// window.location.href = response.data.url;
 		} catch (error) {
 			console.error('Error sending order:', error);
 		}

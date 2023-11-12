@@ -10,7 +10,7 @@ type Todo = {
 	_id: string;
 	text: string;
 	isDone: boolean;
-	user: string; // ID użytkownika, możesz użyć konkretnego typu, np. string
+	user: string;
 	createdAt: Date;
 	updatedAt: Date;
 };
@@ -18,7 +18,7 @@ type Todo = {
 export const Todos = (props: Props) => {
 	const navigate = useNavigate();
 
-	const [todos, setTodos] = useState<Todo[]>([]);
+	const [todos, setTodos] = useState<Todo[]>()
 	const [inputTodo, setInputTodo] = useState<string>();
 
 	const getTodos = async () => {
@@ -30,6 +30,7 @@ export const Todos = (props: Props) => {
 			});
 			const data = response.data;
 			setTodos(data.todos);
+			console.log(todos);
 		} catch (error) {
 			console.error('Error', error);
 		}
@@ -37,8 +38,10 @@ export const Todos = (props: Props) => {
 
 	useEffect(() => {
 		const token = localStorage.getItem('token');
+		console.log(token);
 		if (token) {
 			const user = jwt_decode.jwtDecode(token);
+			console.log(user);
 			if (!user) {
 				localStorage.removeItem('token');
 				navigate('/login');
@@ -46,7 +49,7 @@ export const Todos = (props: Props) => {
 				getTodos();
 			}
 		}
-	});
+	}, []);
 
 	const addTodo = async () => {
 		try {
@@ -64,6 +67,8 @@ export const Todos = (props: Props) => {
 			);
 			const data = response.data;
 			console.log(data);
+			getTodos();
+			setInputTodo('')
 		} catch (error) {
 			console.error('Error', error);
 		}
@@ -72,11 +77,11 @@ export const Todos = (props: Props) => {
 	return (
 		<div>
 			<h2>Your Todos</h2>
-			{/* <ul>
-                {todos.map((todo,index) => (
-                    <li key={index}>{todo.text}</li>
-                ))}
-            </ul> */}
+			<ul>
+				{todos?.map((todo) => (
+					<li className=' text-white' key={todo._id}>{todo.text}</li>
+				))}
+			</ul>
 			<input
 				type='text'
 				value={inputTodo}
