@@ -70,8 +70,6 @@ app.get('/api/getTodos', async (req, res) => {
 		const user = await User.findOne({ email: email });
 		const todos = await Todo.find({ user: user._id });
 
-		
-
 		console.log('Dane użytkownika:', user);
 		console.log('Todosy użytkownika:', todos);
 		console.log(user);
@@ -110,6 +108,97 @@ app.post('/api/addTodos', async (req, res) => {
 		return res.json({ status: 'error', error: 'invalid token' });
 	}
 });
+
+app.delete('/api/deleteTodos/:id', async (req, res) => {
+	const token = req.headers['x-access-token'];
+	const { id } = req.params;
+
+	try {
+		const decoded = jwt.verify(token, 'privateKey123');
+		const email = decoded.email;
+		const user = await User.findOne({ email: email });
+
+		if (user) {
+			const deletedTodo = await Todo.deleteOne({ _id: id, user: user._id });
+
+			if (deletedTodo) {
+				return res.json({ status: 'ok', message: 'Todo deleted successfully' });
+			} else {
+				return res.json({
+					status: 'error',
+					error: 'Todo not found or unauthorized',
+				});
+			}
+		} else {
+			return res.json({ status: 'error', error: 'User not found' });
+		}
+	} catch (error) {
+		console.log(error);
+		return res.json({ status: 'error', error: 'Invalid token' });
+	}
+});
+
+app.patch('/api/toggleTodoStatus/:id', async (req, res) => {
+	const token = req.headers['x-access-token'];
+	const { id } = req.params;
+	const { isDone } = req.body;
+  
+	try {
+	  const decoded = jwt.verify(token, 'privateKey123');
+	  const email = decoded.email;
+	  const user = await User.findOne({ email: email });
+  
+	  if (user) {
+		const updatedTodo = await Todo.findOneAndUpdate(
+		  { _id: id, user: user._id },
+		  { $set: { isDone: isDone } },
+		  { new: true }
+		);
+  
+		if (updatedTodo) {
+		  return res.json({ status: 'ok', message: 'Todo status updated successfully' });
+		} else {
+		  return res.json({ status: 'error', error: 'Todo not found or unauthorized' });
+		}
+	  } else {
+		return res.json({ status: 'error', error: 'User not found' });
+	  }
+	} catch (error) {
+	  console.log(error);
+	  return res.json({ status: 'error', error: 'Invalid token' });
+	}
+  });
+
+  app.put('/api/editTodo/:id', async (req, res) => {
+	const token = req.headers['x-access-token'];
+	const { id } = req.params;
+	const { newText } = req.body;
+  
+	try {
+	  const decoded = jwt.verify(token, 'privateKey123');
+	  const email = decoded.email;
+	  const user = await User.findOne({ email: email });
+  
+	  if (user) {
+		const updatedTodo = await Todo.findOneAndUpdate(
+		  { _id: id, user: user._id },
+		  { $set: { text: newText } },
+		  { new: true }
+		);
+  
+		if (updatedTodo) {
+		  return res.json({ status: 'ok', message: 'Todo text updated successfully' });
+		} else {
+		  return res.json({ status: 'error', error: 'Todo not found or unauthorized' });
+		}
+	  } else {
+		return res.json({ status: 'error', error: 'User not found' });
+	  }
+	} catch (error) {
+	  console.log(error);
+	  return res.json({ status: 'error', error: 'Invalid token' });
+	}
+  });
 
 app.listen(port, () => {
 	console.log('Server started on port', port);

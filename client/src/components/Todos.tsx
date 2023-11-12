@@ -3,23 +3,20 @@ import React, { useEffect, useState } from 'react';
 import * as jwt_decode from 'jwt-decode';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { SingleTodo } from './SingleTodo';
 
-type Props = {};
-
-type Todo = {
+export type Todo = {
 	_id: string;
 	text: string;
 	isDone: boolean;
-	user: string;
-	createdAt: Date;
-	updatedAt: Date;
 };
 
-export const Todos = (props: Props) => {
+export const Todos = () => {
 	const navigate = useNavigate();
 
-	const [todos, setTodos] = useState<Todo[]>()
+	const [todos, setTodos] = useState<Todo[]>();
 	const [inputTodo, setInputTodo] = useState<string>();
+	const [user, setUser] = useState<any>();
 
 	const getTodos = async () => {
 		try {
@@ -30,7 +27,6 @@ export const Todos = (props: Props) => {
 			});
 			const data = response.data;
 			setTodos(data.todos);
-			console.log(todos);
 		} catch (error) {
 			console.error('Error', error);
 		}
@@ -42,12 +38,13 @@ export const Todos = (props: Props) => {
 		if (token) {
 			const user = jwt_decode.jwtDecode(token);
 			console.log(user);
-			if (!user) {
-				localStorage.removeItem('token');
-				navigate('/login');
-			} else {
+			if (user) {
+				setUser(user);
 				getTodos();
 			}
+		} else {
+			localStorage.removeItem('token');
+			navigate('/');
 		}
 	}, []);
 
@@ -68,28 +65,39 @@ export const Todos = (props: Props) => {
 			const data = response.data;
 			console.log(data);
 			getTodos();
-			setInputTodo('')
+			setInputTodo('');
 		} catch (error) {
 			console.error('Error', error);
 		}
 	};
 
 	return (
-		<div>
-			<h2>Your Todos</h2>
-			<ul>
-				{todos?.map((todo) => (
-					<li className=' text-white' key={todo._id}>{todo.text}</li>
-				))}
-			</ul>
-			<input
-				type='text'
-				value={inputTodo}
-				onChange={(e) => setInputTodo(e.target.value)}
-			/>
-			<button className=' bg-white' onClick={addTodo}>
-				Add Todo
-			</button>
+		<div className='container mx-auto mt-8 p-4 bg-gray-100 max-w-md rounded-md shadow-md'>
+			{user && (
+				<div>
+					<h1 className='text-3xl font-bold mb-4'>Witaj, {user.name}!</h1>
+					<p className='text-lg mb-4'>Liczba zadań: {todos?.length}</p>
+
+					<div className='flex items-center mb-4'>
+						<input
+							type='text'
+							value={inputTodo}
+							onChange={(e) => setInputTodo(e.target.value)}
+							placeholder='Dodaje zadanie...'
+							className='flex-1 p-2 border border-gray-300 rounded-md mr-2'
+						/>
+						<button
+							onClick={addTodo}
+							className='bg-blue-500 text-white p-2 rounded-md'
+						>
+							Dodaj
+						</button>
+					</div>
+					{todos?.map((todo) => (
+						<SingleTodo key={todo._id} todo={todo} getTodos={getTodos} />
+					))}
+				</div>
+			)}
 		</div>
 	);
 };
